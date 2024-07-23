@@ -1,6 +1,9 @@
 package db
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/sean9999/good-graph/graph"
 	"github.com/sean9999/harebrain"
 )
@@ -23,40 +26,80 @@ func New(rootPath string) *jsonstore {
 // load an entire graph from database
 func (store *jsonstore) Load() (graph.Society, error) {
 	society := graph.NewSociety()
-	for _, peer := range store.Peers() {
-		society.AddPeer(graph.PeerFrom(peer))
+	peers, err := store.Peers()
+	if err != nil {
+		return society, err
 	}
-	for _, rel := range store.Relationships() {
-		society.Befriend(graph.PeerFrom(rel.From()), graph.PeerFrom(rel.To()))
+	rels, err := store.Relationships()
+	if err != nil {
+		return society, err
+	}
+	for _, peer := range peers {
+		society.AddPeer(graph.PeerFrom(*peer))
+	}
+	for _, rel := range rels {
+		society.Befriend(rel.ToGraph().From, rel.ToGraph().To)
 	}
 	return society, nil
+}
+
+// persist an entire graph to database
+func (store *jsonstore) Persist(g graph.Society) error {
+	return errors.New("not implemented")
 }
 
 func (store *jsonstore) AddRelationship(rel Relationship) error {
 	return store.Brain.Table("relationships").Insert(rel)
 }
 
-func (store *jsonstore) AddPeer(p Peer) error {
+func (store *jsonstore) AddPeer(p *Peer) error {
 	return store.Brain.Table("peers").Insert(p)
 }
 
-func (store *jsonstore) Peers() map[string]Peer {
-	var p Peer
-	m := store.Brain.Table("peers").LoadAll(&p)
-	m2 := map[string]Peer{}
-	for k, v := range m {
-		m2[k] = v.(Peer)
+func (store *jsonstore) GetPeer(nick string) (*Peer, error) {
+	filename := fmt.Sprintf("%s.json", nick)
+	b, err := store.Brain.Table("peers").Get(filename)
+	if err != nil {
+		return nil, err
 	}
-	return m2
+	p := new(Peer)
+	err = p.UnmarshalBinary(b)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
-func (store *jsonstore) Relationships() []Relationship {
-	var rs []Relationship
-	var r relationship
-	m := store.Brain.Table("peers").LoadAll(&r)
-
-	for _, v := range m {
-		rs = append(rs, v.(*relationship))
+func (store *jsonstore) Peers() (map[string]*Peer, error) {
+	m1, err := store.Brain.Table("peers").GetAll()
+	if err != nil {
+		return nil, err
 	}
-	return rs
+	m2 := map[string]*Peer{}
+	for k, v := range m1 {
+		p := new(Peer)
+		err := p.UnmarshalBinary(v)
+		if err != nil {
+			return nil, err
+		}
+		m2[k] = p
+	}
+	return m2, nil
+}
+
+func (store *jsonstore) Relationships() ([]Relationship, error) {
+	var rs []Relationship
+	m1, err := store.Brain.Table("relationships").GetAll()
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range m1 {
+		rel := new(relationship)
+		err := rel.UnmarshalBinary(v)
+		if err != nil {
+			return nil, err
+		}
+		rs = append(rs, rel)
+	}
+	return rs, nil
 }

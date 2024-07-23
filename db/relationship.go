@@ -8,15 +8,32 @@ import (
 	"github.com/sean9999/harebrain"
 )
 
-type relationship struct {
-	FromPeer Peer `json:"from"`
-	ToPeer   Peer `json:"to"`
+type Relationship interface {
+	From() *Peer
+	To() *Peer
+	harebrain.EncodeHasher
+	ToGraph() graph.Relationship
 }
 
-func (rel *relationship) From() Peer {
+var _ Relationship = (*relationship)(nil)
+
+type relationship struct {
+	FromPeer *Peer `json:"from"`
+	ToPeer   *Peer `json:"to"`
+}
+
+func (rel *relationship) ToGraph() graph.Relationship {
+	g := graph.Relationship{
+		From: graph.Peer(*rel.FromPeer),
+		To:   graph.Peer(*rel.ToPeer),
+	}
+	return g
+}
+
+func (rel *relationship) From() *Peer {
 	return rel.FromPeer
 }
-func (rel *relationship) To() Peer {
+func (rel *relationship) To() *Peer {
 	return rel.ToPeer
 }
 
@@ -70,7 +87,7 @@ func (rel *relationship) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	rel.FromPeer = Peer(sourcePeer)
-	rel.ToPeer = Peer(destPeer)
+	rel.FromPeer = PeerFrom(sourcePeer)
+	rel.ToPeer = PeerFrom(destPeer)
 	return nil
 }
