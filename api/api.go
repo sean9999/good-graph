@@ -164,8 +164,8 @@ func Befriend(database db.Database, soc graph.Society, events chan ws.Msg) http.
 				Msg:     fmt.Sprintf("%s,%s", p1, p2),
 				N:       2,
 			}
-			err1 = database.AddRelationship(db.RelationshipFrom(p1, p2))
-			err2 = database.AddRelationship(db.RelationshipFrom(p2, p1))
+			err1 = database.AddRelationship(db.NewRelationship(p1, p2))
+			err2 = database.AddRelationship(db.NewRelationship(p2, p1))
 		}
 		if err1 != nil && err2 != nil {
 			msg["err1"] = err1.Error()

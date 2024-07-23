@@ -2,11 +2,12 @@ package db
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/sean9999/good-graph/graph"
 	"github.com/sean9999/harebrain"
 )
+
+var _ Database = (*jsonstore)(nil)
 
 // jsonstore implements Database, using harebrain as back-end
 type jsonstore struct {
@@ -35,7 +36,7 @@ func (store *jsonstore) Load() (graph.Society, error) {
 		return society, err
 	}
 	for _, peer := range peers {
-		society.AddPeer(graph.PeerFrom(*peer))
+		society.AddPeer(graph.PeerFrom(peer))
 	}
 	for _, rel := range rels {
 		society.Befriend(rel.ToGraph().From, rel.ToGraph().To)
@@ -52,37 +53,49 @@ func (store *jsonstore) AddRelationship(rel Relationship) error {
 	return store.Brain.Table("relationships").Insert(rel)
 }
 
-func (store *jsonstore) AddPeer(p *Peer) error {
+func (store *jsonstore) RelationshipExists(rel Relationship) bool {
+	_, err := store.Brain.Table("relationships").Get(rel.Hash())
+	return (err == nil)
+}
+
+func (store *jsonstore) RemoveRelationship(rel Relationship) error {
+	return store.Brain.Table("relationships").Delete(rel.Hash())
+}
+
+func (store *jsonstore) AddPeer(p Peer) error {
 	return store.Brain.Table("peers").Insert(p)
 }
 
-func (store *jsonstore) GetPeer(nick string) (*Peer, error) {
-	filename := fmt.Sprintf("%s.json", nick)
-	b, err := store.Brain.Table("peers").Get(filename)
+func (store *jsonstore) GetPeer(hash string) (Peer, error) {
+	b, err := store.Brain.Table("peers").Get(hash)
 	if err != nil {
-		return nil, err
+		return NoPeer, err
 	}
-	p := new(Peer)
+	p := Peer{}
 	err = p.UnmarshalBinary(b)
 	if err != nil {
-		return nil, err
+		return NoPeer, err
 	}
 	return p, nil
 }
 
-func (store *jsonstore) Peers() (map[string]*Peer, error) {
+func (store *jsonstore) RemovePeer(p Peer) error {
+	return store.Brain.Table("peers").Delete(p.Hash())
+}
+
+func (store *jsonstore) Peers() (map[string]Peer, error) {
 	m1, err := store.Brain.Table("peers").GetAll()
 	if err != nil {
 		return nil, err
 	}
-	m2 := map[string]*Peer{}
+	m2 := map[string]Peer{}
 	for k, v := range m1 {
 		p := new(Peer)
 		err := p.UnmarshalBinary(v)
 		if err != nil {
 			return nil, err
 		}
-		m2[k] = p
+		m2[k] = *p
 	}
 	return m2, nil
 }

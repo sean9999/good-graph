@@ -17,7 +17,7 @@ import (
 func main() {
 
 	//	persistence
-	gdb := db.New("data")
+	gdb := db.New("testdata")
 
 	//	graph
 	society, err := gdb.Load()

@@ -11,8 +11,8 @@ type Database interface {
 	Close() error
 	Load() (Society, error)
 	Save(Society) error
-	Peers() (map[string]*Peer, error)
-	AddPeer(*Peer) error
+	Peers() (map[string]Peer, error)
+	AddPeer(Peer) error
 	RemovePeer(Peer) error
 	Relationships() ([]Relationship, error)
 	AddRelationship(Relationship) error

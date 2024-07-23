@@ -9,8 +9,8 @@ import (
 )
 
 type Relationship interface {
-	From() *Peer
-	To() *Peer
+	From() Peer
+	To() Peer
 	harebrain.EncodeHasher
 	ToGraph() graph.Relationship
 }
@@ -18,22 +18,22 @@ type Relationship interface {
 var _ Relationship = (*relationship)(nil)
 
 type relationship struct {
-	FromPeer *Peer `json:"from"`
-	ToPeer   *Peer `json:"to"`
+	FromPeer Peer `json:"from"`
+	ToPeer   Peer `json:"to"`
 }
 
 func (rel *relationship) ToGraph() graph.Relationship {
 	g := graph.Relationship{
-		From: graph.Peer(*rel.FromPeer),
-		To:   graph.Peer(*rel.ToPeer),
+		From: graph.Peer(rel.FromPeer),
+		To:   graph.Peer(rel.ToPeer),
 	}
 	return g
 }
 
-func (rel *relationship) From() *Peer {
+func (rel *relationship) From() Peer {
 	return rel.FromPeer
 }
-func (rel *relationship) To() *Peer {
+func (rel *relationship) To() Peer {
 	return rel.ToPeer
 }
 
@@ -46,14 +46,8 @@ func (rel *relationship) MarshalBinary() ([]byte, error) {
 func (rel *relationship) UnmarshalBinary(p []byte) error {
 	return rel.UnmarshalJSON(p)
 }
-func (rel *relationship) Clone() harebrain.EncodeHasher {
-	r2 := new(relationship)
-	p, _ := rel.MarshalBinary()
-	r2.UnmarshalBinary(p)
-	return r2
-}
 
-func RelationshipFrom(from [64]byte, to [64]byte) *relationship {
+func NewRelationship(from [64]byte, to [64]byte) *relationship {
 	p1 := PeerFrom(from)
 	p2 := PeerFrom(to)
 	return &relationship{p1, p2}

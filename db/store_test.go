@@ -23,13 +23,10 @@ func TestDatabase_AddPeer(t *testing.T) {
 
 func TestDatabase_AddRelationship(t *testing.T) {
 	d := db.New("../testdata")
-	// frog := new(db.Peer)
-	// wood := new(db.Peer)
-	frog, err := d.GetPeer("young-sea")
+	morn, err := d.GetPeer("silent-morning")
 	assert.Nil(t, err, "getting a peer should be fine")
-	wood, err := d.GetPeer("late-frog")
-
-	rel := db.RelationshipFrom(*frog, *wood)
+	frog, err := d.GetPeer("late-frog")
+	rel := db.NewRelationship(frog, morn)
 	err = d.AddRelationship(rel)
 	assert.Nil(t, err)
 }

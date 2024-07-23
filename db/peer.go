@@ -4,29 +4,30 @@ import (
 	"encoding/json"
 
 	"github.com/sean9999/good-graph/graph"
-	"github.com/sean9999/harebrain"
 )
+
+var NoPeer Peer
 
 type Peer graph.Peer
 
-func (p *Peer) String() string {
-	return graph.PeerFromBytes(p[:]).String()
+func (p Peer) String() string {
+	return p.Graph().String()
 }
-func (p *Peer) Nickname() string {
-	return graph.PeerFromBytes(p[:]).Nickname()
+
+func (p Peer) Graph() graph.Peer {
+	return graph.PeerFrom(p)
 }
-func (p *Peer) Clone() harebrain.EncodeHasher {
-	var p2 Peer
-	copy(p2[:], p[:])
-	return &p2
+
+func (p Peer) Nickname() string {
+	return p.Graph().Nickname()
 }
-func (p *Peer) MarshalBinary() ([]byte, error) {
+func (p Peer) MarshalBinary() ([]byte, error) {
 	return graph.PeerFromBytes(p[:]).MarshalJSON()
 }
-func (p *Peer) Hash() string {
+func (p Peer) Hash() string {
 	return graph.PeerFromBytes(p[:]).Nickname() + ".json"
 }
-func (p *Peer) UnmarshalBinary(b []byte) error {
+func (p Peer) UnmarshalBinary(b []byte) error {
 	type smalPeer struct {
 		Pubkey string `json:"pubkey"`
 	}
@@ -46,12 +47,12 @@ func (p *Peer) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-func (p *Peer) Bytes() []byte {
+func (p Peer) Bytes() []byte {
 	return p[:]
 }
 
-func PeerFrom(b [64]byte) *Peer {
+func PeerFrom(b [64]byte) Peer {
 	var p Peer
 	copy(p[:], b[:])
-	return &p
+	return p
 }
