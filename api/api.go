@@ -9,7 +9,7 @@ import (
 
 	"github.com/sean9999/good-graph/db"
 	"github.com/sean9999/good-graph/graph"
-	"github.com/sean9999/good-graph/ws"
+	"github.com/sean9999/good-graph/transport"
 )
 
 func GetVertices(_ db.Database, soc graph.Society) http.HandlerFunc {
@@ -107,7 +107,7 @@ func GetNeighbours(_ db.Database, soc graph.Society) http.HandlerFunc {
 	}
 }
 
-func AddVertex(database db.Database, soc graph.Society, msgs chan ws.Msg) http.HandlerFunc {
+func AddVertex(database db.Database, soc graph.Society, msgs chan transport.Msg) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p, err := graph.NewPeer(rand.Reader)
 		if err != nil {
@@ -124,7 +124,7 @@ func AddVertex(database db.Database, soc graph.Society, msgs chan ws.Msg) http.H
 		}
 
 		//	advertise event
-		ev := ws.Msg{
+		ev := transport.Msg{
 			MsgType: "AddVertex",
 			Msg:     p.String(),
 			N:       1,
@@ -135,7 +135,7 @@ func AddVertex(database db.Database, soc graph.Society, msgs chan ws.Msg) http.H
 	}
 }
 
-func Befriend(database db.Database, soc graph.Society, events chan ws.Msg) http.HandlerFunc {
+func Befriend(database db.Database, soc graph.Society, events chan transport.Msg) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		twoPeers := [2]string{}
 		buf := new(bytes.Buffer)
@@ -159,7 +159,7 @@ func Befriend(database db.Database, soc graph.Society, events chan ws.Msg) http.
 		var err1, err2 error
 		err = soc.Befriend(p1, p2)
 		if err == nil {
-			events <- ws.Msg{
+			events <- transport.Msg{
 				MsgType: "Befriend",
 				Msg:     fmt.Sprintf("%s,%s", p1, p2),
 				N:       2,

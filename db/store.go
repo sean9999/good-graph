@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/sean9999/good-graph/graph"
+	"github.com/sean9999/good-graph/transport"
 	"github.com/sean9999/harebrain"
 )
 
@@ -25,8 +26,8 @@ func New(rootPath string) *jsonstore {
 }
 
 // load an entire graph from database
-func (store *jsonstore) Load() (graph.Society, error) {
-	society := graph.NewSociety()
+func (store *jsonstore) Load(ch chan transport.Msg) (graph.Society, error) {
+	society := graph.NewSociety(ch)
 	peers, err := store.Peers()
 	if err != nil {
 		return society, err

@@ -16,17 +16,17 @@ import (
 
 func main() {
 
+	// WebSockets
+	mother := ws.NewMotherShip()
+
 	//	persistence
 	gdb := db.New("testdata")
 
 	//	graph
-	society, err := gdb.Load()
+	society, err := gdb.Load(mother.Inbox)
 	if err != nil {
 		panic(err)
 	}
-
-	// WebSockets
-	mother := ws.NewMotherShip()
 
 	// router
 	r := chi.NewRouter()

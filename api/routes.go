@@ -5,10 +5,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/sean9999/good-graph/db"
 	"github.com/sean9999/good-graph/graph"
-	"github.com/sean9999/good-graph/ws"
+	"github.com/sean9999/good-graph/transport"
 )
 
-func Routes(db db.Database, graph graph.Society, msgs chan ws.Msg) *chi.Mux {
+func Routes(db db.Database, graph graph.Society, msgs chan transport.Msg) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middlewareJson)

@@ -4,20 +4,35 @@ import (
 	"fmt"
 
 	"github.com/hmdsefi/gograph"
+	"github.com/sean9999/good-graph/transport"
 )
 
 // a Society is a Graph of Citizens
 type Society struct {
 	gograph.Graph[Peer]
+	Messages chan transport.Msg
 }
 
 func (soc Society) AddPeer(p Peer) *gograph.Vertex[Peer] {
+	go soc.advertise("peerAdd", p.String(), 1)
 	return soc.AddVertexByLabel(p)
+}
+
+func (soc Society) advertise(typ, msg string, n int) {
+	m := transport.Msg{
+		MsgType: fmt.Sprintf("society/%s", typ),
+		Msg:     msg,
+		N:       n,
+	}
+	soc.Messages <- m
 }
 
 func (soc Society) RemovePeer(p Peer) {
 	vert := soc.GetVertexByID(p)
-	soc.RemoveVertices(vert)
+	if vert != nil {
+		soc.RemoveVertices(vert)
+		go soc.advertise("removePeer", p.String(), 1)
+	}
 }
 
 func (soc Society) RelationshipExists(rel Relationship) bool {
@@ -41,6 +56,9 @@ func (soc Society) Follow(p1 Peer, p2 Peer) error {
 		return ErrNoPeer
 	}
 	_, err := soc.AddEdge(v1, v2)
+	if err == nil {
+		go soc.advertise("addFollow", NewRelationship(p1, p2).String(), 2)
+	}
 	return err
 }
 
@@ -50,6 +68,7 @@ func (soc Society) Befriend(p1 Peer, p2 Peer) error {
 	if err1 != nil && err2 != nil {
 		return fmt.Errorf("%w - %w", err1, err2)
 	}
+	go soc.advertise("befriend", NewRelationship(p1, p2).String(), 4)
 	return nil
 }
 
@@ -62,7 +81,12 @@ func (soc Society) GetVertexByNick(nick string) Citizen {
 	return nil
 }
 
-func NewSociety() Society {
+func NewSociety(ch chan transport.Msg) Society {
 	g := gograph.New[Peer](gograph.Directed())
-	return Society{g}
+	soc := Society{
+		g,
+		ch,
+	}
+	go soc.advertise("graphCreated", "graphCreated", 0)
+	return soc
 }

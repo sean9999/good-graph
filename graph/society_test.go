@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/sean9999/good-graph/graph"
+	"github.com/sean9999/good-graph/transport"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -23,7 +24,8 @@ type SocietySuite struct {
 }
 
 func (suite *SocietySuite) SetupTest() {
-	suite.Graph = graph.NewSociety()
+	ch := make(chan transport.Msg, 100)
+	suite.Graph = graph.NewSociety(ch)
 }
 
 func (s *SocietySuite) TestNewSociety() {

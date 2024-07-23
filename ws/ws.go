@@ -8,20 +8,15 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog"
+	"github.com/sean9999/good-graph/transport"
 )
-
-type Msg struct {
-	MsgType string `json:"msgType"`
-	Msg     string `json:"msg,omitempty"`
-	N       int    `json:"n,omitempty"`
-}
 
 // MotherShip contains pointers to all connections, and handles websockets
 type MotherShip struct {
 	Connections map[*websocket.Conn]bool
 	Logger      zerolog.Logger
-	Inbox       chan Msg
-	Outbox      chan Msg
+	Inbox       chan transport.Msg
+	Outbox      chan transport.Msg
 }
 
 // a constructor, just in case
@@ -29,8 +24,8 @@ func NewMotherShip() *MotherShip {
 	ms := MotherShip{
 		Connections: map[*websocket.Conn]bool{},
 		Logger:      zerolog.New(os.Stdout).Level(zerolog.DebugLevel),
-		Inbox:       make(chan Msg, 1024),
-		Outbox:      make(chan Msg, 2024),
+		Inbox:       make(chan transport.Msg, 1024),
+		Outbox:      make(chan transport.Msg, 2024),
 	}
 	return &ms
 }
@@ -56,7 +51,7 @@ func (m *MotherShip) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	//	re-use this for each message
-	var msg Msg
+	var msg transport.Msg
 
 WebSocketListener:
 	for {
@@ -88,7 +83,7 @@ WebSocketListener:
 				err = c.WriteJSON(msg)
 				break WebSocketListener
 			default:
-				m.Logger.Info().Msgf("%v", msg)
+				m.Logger.Info().Msgf("%q and %q and %d", msg.MsgType, msg.Msg, msg.N)
 			}
 
 		}

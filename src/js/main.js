@@ -28,24 +28,29 @@ const marcoPoloMsg = {
 
 const ws = soccer.ws;
 soccer.onMessage(message => {
-	switch (message.msgType) {
-		case "marcoPolo":
-			if (message.msg == "marco") {
-				marcoPoloMsg.msg = "polo";
-			} else {
-				marcoPoloMsg.msg = "marco";
-			}
-			marcoPoloMsg.n = message.n++;
-			console.log(marcoPoloMsg);
-			if (marcoPoloMsg.n < 100) {
-				soccer.send(marcoPoloMsg.msgType, marcoPoloMsg.msg, marcoPoloMsg.n);
-			}
-		break;
-		case "killYourself":
-			soccer.ws.close();
-			console.info("closing soccer");
-		default:
-			console.warn("not marco polo", message)
+
+	if (! "msgType" in message) {
+		console.warn("malformed message", message);
+	} else {
+		switch (message.msgType) {
+			case "marcoPolo":
+				if (message.msg == "marco") {
+					marcoPoloMsg.msg = "polo";
+				} else {
+					marcoPoloMsg.msg = "marco";
+				}
+				marcoPoloMsg.n = message.n++;
+				console.log(marcoPoloMsg);
+				if (marcoPoloMsg.n < 100) {
+					soccer.send(marcoPoloMsg.msgType, marcoPoloMsg.msg, marcoPoloMsg.n);
+				}
+			break;
+			case "killYourself":
+				soccer.ws.close();
+				console.info("closing soccer");
+			default:
+				console.warn("not marco polo", message)
+		}
 	}
 });
 
@@ -131,6 +136,10 @@ dom.btn.debug.addEventListener("click", _ => {
 });
 
 dom.btn.addNode.addEventListener("click", _ => {
+
+	console.log(soccer);
+
+	soccer.send("graph", "add new node");
 	g.addNode(`Mr ${g.lastId()+1}`);
 	g.addNode(`Mr ${g.lastId()+1}`);
 });
