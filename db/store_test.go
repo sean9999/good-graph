@@ -6,11 +6,14 @@ import (
 
 	"github.com/sean9999/good-graph/db"
 	"github.com/sean9999/good-graph/graph"
+	"github.com/sean9999/good-graph/transport"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDatabase_AddPeer(t *testing.T) {
-	gdb := db.New("../testdata")
+	ch1 := make(chan transport.Msg, 10)
+	ch2 := make(chan transport.Msg, 10)
+	gdb := db.New("../testdata", ch1, ch2)
 	graphPeer, err := graph.NewPeer(rand.Reader)
 	assert.Nil(t, err, "creating a new peer should not produce an error")
 	p1 := db.PeerFrom(graphPeer)
@@ -22,7 +25,9 @@ func TestDatabase_AddPeer(t *testing.T) {
 }
 
 func TestDatabase_AddRelationship(t *testing.T) {
-	d := db.New("../testdata")
+	ch1 := make(chan transport.Msg, 10)
+	ch2 := make(chan transport.Msg, 10)
+	d := db.New("../testdata", ch1, ch2)
 	morn, err := d.GetPeer("silent-morning")
 	assert.Nil(t, err, "getting a peer should be fine")
 	frog, err := d.GetPeer("late-frog")

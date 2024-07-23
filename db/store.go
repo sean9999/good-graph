@@ -14,20 +14,24 @@ var _ Database = (*jsonstore)(nil)
 type jsonstore struct {
 	Brain *harebrain.Database
 	Database
+	Inbox  chan transport.Msg
+	Outbox chan transport.Msg
 }
 
-func New(rootPath string) *jsonstore {
+func New(rootPath string, inbox, outbox chan transport.Msg) *jsonstore {
 	brain := harebrain.NewDatabase()
 	brain.Open(rootPath)
 	store := jsonstore{
-		Brain: brain,
+		Brain:  brain,
+		Inbox:  inbox,
+		Outbox: outbox,
 	}
 	return &store
 }
 
 // load an entire graph from database
-func (store *jsonstore) Load(ch chan transport.Msg) (graph.Society, error) {
-	society := graph.NewSociety(ch)
+func (store *jsonstore) Load() (graph.Society, error) {
+	society := graph.NewSociety(store.Inbox, store.Outbox)
 	peers, err := store.Peers()
 	if err != nil {
 		return society, err

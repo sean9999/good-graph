@@ -20,10 +20,10 @@ func main() {
 	mother := ws.NewMotherShip()
 
 	//	persistence
-	gdb := db.New("testdata")
+	gdb := db.New("testdata", mother.Inbox, mother.Outbox)
 
 	//	graph
-	society, err := gdb.Load(mother.Inbox)
+	society, err := gdb.Load()
 	if err != nil {
 		panic(err)
 	}

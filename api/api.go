@@ -123,10 +123,12 @@ func AddVertex(database db.Database, soc graph.Society, msgs chan transport.Msg)
 			"msg": fmt.Sprintf("%s was added to the graph", p.Nickname()),
 		}
 
+		j, _ := p.MarshalJSON()
+
 		//	advertise event
 		ev := transport.Msg{
 			MsgType: "AddVertex",
-			Msg:     p.String(),
+			Msg:     j,
 			N:       1,
 		}
 		msgs <- ev
@@ -159,13 +161,16 @@ func Befriend(database db.Database, soc graph.Society, events chan transport.Msg
 		var err1, err2 error
 		err = soc.Befriend(p1, p2)
 		if err == nil {
+			rel1 := db.NewRelationship(p1, p2)
+			rel2 := db.NewRelationship(p2, p1)
+			j, _ := rel1.MarshalJSON()
 			events <- transport.Msg{
 				MsgType: "Befriend",
-				Msg:     fmt.Sprintf("%s,%s", p1, p2),
+				Msg:     j,
 				N:       2,
 			}
-			err1 = database.AddRelationship(db.NewRelationship(p1, p2))
-			err2 = database.AddRelationship(db.NewRelationship(p2, p1))
+			err1 = database.AddRelationship(rel1)
+			err2 = database.AddRelationship(rel2)
 		}
 		if err1 != nil && err2 != nil {
 			msg["err1"] = err1.Error()

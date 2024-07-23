@@ -26,6 +26,7 @@ const marcoPoloMsg = {
 	"n": 0
 };
 
+
 const ws = soccer.ws;
 soccer.onMessage(message => {
 
@@ -135,14 +136,16 @@ dom.btn.debug.addEventListener("click", _ => {
 	prog(g, [g.randomLink()]);
 });
 
-dom.btn.addNode.addEventListener("click", _ => {
-
-	console.log(soccer);
-
-	soccer.send("graph", "add new node");
+dom.btn.addNode1.addEventListener("click", _ => {
 	g.addNode(`Mr ${g.lastId()+1}`);
 	g.addNode(`Mr ${g.lastId()+1}`);
 });
+
+dom.btn.addNode2.addEventListener("click", _ => {
+	soccer.send("society/addNode", {}, 1);
+	soccer.send("society/addNode", {}, 1);
+});
+
 
 dom.btn.lonely.addEventListener("click", _ => {
 	const a = g.randomLonelyNode();

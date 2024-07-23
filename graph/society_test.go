@@ -24,8 +24,9 @@ type SocietySuite struct {
 }
 
 func (suite *SocietySuite) SetupTest() {
-	ch := make(chan transport.Msg, 100)
-	suite.Graph = graph.NewSociety(ch)
+	ch1 := make(chan transport.Msg, 100)
+	ch2 := make(chan transport.Msg, 100)
+	suite.Graph = graph.NewSociety(ch1, ch2)
 }
 
 func (s *SocietySuite) TestNewSociety() {

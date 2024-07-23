@@ -3,6 +3,7 @@ package ws
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -30,7 +31,7 @@ func NewMotherShip() *MotherShip {
 	return &ms
 }
 
-var addr = flag.String("addr", "localhost:8080", "http service address")
+var addr = flag.String("addr", "localhost:8282", "http service address")
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
@@ -70,10 +71,10 @@ WebSocketListener:
 			m.Outbox <- msg
 			switch msg.MsgType {
 			case "marcoPolo":
-				if msg.Msg == "marco" {
-					msg.Msg = "polo"
+				if msg.String() == "marco" {
+					msg.Set("polo")
 				} else {
-					msg.Msg = "marco"
+					msg.Set("marco")
 				}
 				msg.N++
 				m.Logger.Info().Msgf("%v", msg)
@@ -82,6 +83,11 @@ WebSocketListener:
 				m.Logger.Info().Msgf("%v", msg)
 				err = c.WriteJSON(msg)
 				break WebSocketListener
+			case "society/addNode":
+				fmt.Printf("type: %q\n", msg.MsgType)
+				fmt.Printf("msg: %s\n", msg.Msg)
+				fmt.Printf("n: %d\n\n", msg.N)
+				m.Inbox <- msg
 			default:
 				m.Logger.Info().Msgf("%q and %q and %d", msg.MsgType, msg.Msg, msg.N)
 			}

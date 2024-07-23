@@ -2,7 +2,6 @@ package db
 
 import (
 	"github.com/sean9999/good-graph/graph"
-	"github.com/sean9999/good-graph/transport"
 )
 
 type Society = graph.Society
@@ -10,7 +9,7 @@ type Society = graph.Society
 type Database interface {
 	Open() error
 	Close() error
-	Load(chan transport.Msg) (Society, error)
+	Load() (Society, error)
 	Save(Society) error
 	Peers() (map[string]Peer, error)
 	AddPeer(Peer) error

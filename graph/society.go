@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"crypto/rand"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hmdsefi/gograph"
@@ -10,21 +12,23 @@ import (
 // a Society is a Graph of Citizens
 type Society struct {
 	gograph.Graph[Peer]
-	Messages chan transport.Msg
+	Inbox  chan transport.Msg
+	Outbox chan transport.Msg
 }
 
 func (soc Society) AddPeer(p Peer) *gograph.Vertex[Peer] {
-	go soc.advertise("peerAdd", p.String(), 1)
+	go soc.advertise("peerAdd", p, 1)
 	return soc.AddVertexByLabel(p)
 }
 
-func (soc Society) advertise(typ, msg string, n int) {
+func (soc Society) advertise(typ, msg any, n int) {
+	j, _ := json.Marshal(msg)
 	m := transport.Msg{
 		MsgType: fmt.Sprintf("society/%s", typ),
-		Msg:     msg,
+		Msg:     json.RawMessage(j),
 		N:       n,
 	}
-	soc.Messages <- m
+	soc.Outbox <- m
 }
 
 func (soc Society) RemovePeer(p Peer) {
@@ -55,9 +59,13 @@ func (soc Society) Follow(p1 Peer, p2 Peer) error {
 	if v1 == nil || v2 == nil {
 		return ErrNoPeer
 	}
+
+	rel := NewRelationship(p1, p2)
+	j, _ := rel.MarshalJson()
+
 	_, err := soc.AddEdge(v1, v2)
 	if err == nil {
-		go soc.advertise("addFollow", NewRelationship(p1, p2).String(), 2)
+		go soc.advertise("addFollow", j, 2)
 	}
 	return err
 }
@@ -81,12 +89,22 @@ func (soc Society) GetVertexByNick(nick string) Citizen {
 	return nil
 }
 
-func NewSociety(ch chan transport.Msg) Society {
+func NewSociety(inbox, outbox chan transport.Msg) Society {
 	g := gograph.New[Peer](gograph.Directed())
 	soc := Society{
 		g,
-		ch,
+		inbox,
+		outbox,
 	}
 	go soc.advertise("graphCreated", "graphCreated", 0)
+
+	go func() {
+		for ev := range inbox {
+			fmt.Printf("inbox: %v\n", ev)
+			p, _ := NewPeer(rand.Reader)
+			soc.AddPeer(p)
+		}
+	}()
+
 	return soc
 }
