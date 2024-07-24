@@ -72,14 +72,9 @@ func PeerFromHex(hex []byte) (Peer, error) {
 	return Peer(p), nil
 }
 func PeerFromBytes(bs []byte) Peer {
-	p := oracle.NewPeer(bs)
-	return Peer(p)
+	return Peer(bs)
 }
 func NewPeer(randy io.Reader) (Peer, error) {
 	pol, err := polity.NewPeer(randy)
 	return Peer(pol), err
-}
-
-func PeerFrom(arr [64]byte) Peer {
-	return PeerFromBytes(arr[:])
 }

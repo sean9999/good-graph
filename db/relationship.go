@@ -48,8 +48,8 @@ func (rel *relationship) UnmarshalBinary(p []byte) error {
 }
 
 func NewRelationship(from [64]byte, to [64]byte) *relationship {
-	p1 := PeerFrom(from)
-	p2 := PeerFrom(to)
+	p1 := Peer(from)
+	p2 := Peer(to)
 	return &relationship{p1, p2}
 }
 
@@ -81,7 +81,7 @@ func (rel *relationship) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	rel.FromPeer = PeerFrom(sourcePeer)
-	rel.ToPeer = PeerFrom(destPeer)
+	rel.FromPeer = Peer(sourcePeer)
+	rel.ToPeer = Peer(destPeer)
 	return nil
 }

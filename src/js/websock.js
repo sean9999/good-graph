@@ -28,6 +28,7 @@ class Soccer {
         if (this.ws.CLOSED === this.ws.readyState) {
             console.error("can't send on a closed connection");
             //this.retry(msgType, msg, n);
+            this.reconnect();
         } else {
             const m = {
                 msgType, msg, n

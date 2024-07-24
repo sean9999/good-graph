@@ -2,6 +2,7 @@ package ws
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
@@ -11,6 +12,9 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/sean9999/good-graph/transport"
 )
+
+var ErrMarcoPolo = errors.New("marco polo")
+var ErrSuicide = errors.New("kill yourself")
 
 // MotherShip contains pointers to all connections, and handles websockets
 type MotherShip struct {
@@ -51,6 +55,16 @@ func (m *MotherShip) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Body.Close()
 	}()
 
+	//	send anything in outbox to websocket channel
+	go func() {
+		for msg := range m.Outbox {
+			err := c.WriteJSON(msg)
+			if err != nil {
+				m.Logger.Err(err)
+			}
+		}
+	}()
+
 	//	re-use this for each message
 	var msg transport.Msg
 
@@ -60,7 +74,7 @@ WebSocketListener:
 		_, msgBytes, err := c.ReadMessage()
 
 		if err != nil {
-			m.Logger.Println("error reading from websocket", err)
+			m.Logger.Err(err).Msg("reading from websocket")
 			break
 		}
 
@@ -68,7 +82,7 @@ WebSocketListener:
 		if err != nil {
 			m.Logger.Err(err)
 		} else {
-			m.Outbox <- msg
+			m.Inbox <- msg
 			switch msg.MsgType {
 			case "marcoPolo":
 				if msg.String() == "marco" {
@@ -77,17 +91,22 @@ WebSocketListener:
 					msg.Set("marco")
 				}
 				msg.N++
-				m.Logger.Info().Msgf("%v", msg)
 				err = c.WriteJSON(msg)
+				if err != nil {
+					m.Logger.Err(fmt.Errorf("%w :%w", err, ErrMarcoPolo))
+				} else {
+					m.Logger.Info().Msgf("marco polo: %v", msg)
+				}
 			case "killYourself":
-				m.Logger.Info().Msgf("%v", msg)
 				err = c.WriteJSON(msg)
+				if err != nil {
+					m.Logger.Err(err)
+				} else {
+					m.Logger.Info().Msgf("kill yourself: %v", msg)
+				}
 				break WebSocketListener
 			case "society/addNode":
-				fmt.Printf("type: %q\n", msg.MsgType)
-				fmt.Printf("msg: %s\n", msg.Msg)
-				fmt.Printf("n: %d\n\n", msg.N)
-				m.Inbox <- msg
+				m.Logger.Info().Msgf("SOCIETY: %s: %v (%d)", msg.MsgType, msg.Msg, msg.N)
 			default:
 				m.Logger.Info().Msgf("%q and %q and %d", msg.MsgType, msg.Msg, msg.N)
 			}

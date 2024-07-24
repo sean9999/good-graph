@@ -41,7 +41,7 @@ func (store *jsonstore) Load() (graph.Society, error) {
 		return society, err
 	}
 	for _, peer := range peers {
-		society.AddPeer(graph.PeerFrom(peer))
+		society.AddPeer(graph.Peer(peer))
 	}
 	for _, rel := range rels {
 		society.Befriend(rel.ToGraph().From, rel.ToGraph().To)

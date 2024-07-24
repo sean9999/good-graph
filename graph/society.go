@@ -17,7 +17,7 @@ type Society struct {
 }
 
 func (soc Society) AddPeer(p Peer) *gograph.Vertex[Peer] {
-	go soc.advertise("peerAdd", p, 1)
+	go soc.advertise("peerAdded", p, 1)
 	return soc.AddVertexByLabel(p)
 }
 
@@ -101,8 +101,17 @@ func NewSociety(inbox, outbox chan transport.Msg) Society {
 	go func() {
 		for ev := range inbox {
 			fmt.Printf("inbox: %v\n", ev)
-			p, _ := NewPeer(rand.Reader)
+			p, err := NewPeer(rand.Reader)
+			if err != nil {
+				fmt.Println("creating new peer", err)
+			}
 			soc.AddPeer(p)
+			j, err := p.MarshalJSON()
+			if err != nil {
+				fmt.Println("marshaling peer")
+			}
+			msg := transport.NewMsg("addThisNode", string(j), p.ToInt())
+			outbox <- msg
 		}
 	}()
 

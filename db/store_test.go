@@ -16,7 +16,7 @@ func TestDatabase_AddPeer(t *testing.T) {
 	gdb := db.New("../testdata", ch1, ch2)
 	graphPeer, err := graph.NewPeer(rand.Reader)
 	assert.Nil(t, err, "creating a new peer should not produce an error")
-	p1 := db.PeerFrom(graphPeer)
+	p1 := db.Peer(graphPeer)
 	err = gdb.AddPeer(p1)
 	assert.Nil(t, err, "adding a peer should not produce an error")
 	p2, err := gdb.GetPeer(p1.Nickname())

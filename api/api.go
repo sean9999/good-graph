@@ -118,7 +118,7 @@ func AddVertex(database db.Database, soc graph.Society, msgs chan transport.Msg)
 			w.Write(msg.Json())
 		}
 		soc.AddPeer(p)
-		database.AddPeer(db.PeerFrom(p))
+		database.AddPeer(db.Peer(p))
 		msg := jMap{
 			"msg": fmt.Sprintf("%s was added to the graph", p.Nickname()),
 		}

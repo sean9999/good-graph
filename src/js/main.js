@@ -45,10 +45,14 @@ soccer.onMessage(message => {
 				if (marcoPoloMsg.n < 100) {
 					soccer.send(marcoPoloMsg.msgType, marcoPoloMsg.msg, marcoPoloMsg.n);
 				}
-			break;
+				break;
 			case "killYourself":
 				soccer.ws.close();
 				console.info("closing soccer");
+				break;
+			case "society/addNode":
+				console.log("let's add a node!");
+				break;
 			default:
 				console.warn("not marco polo", message)
 		}
@@ -143,7 +147,6 @@ dom.btn.addNode1.addEventListener("click", _ => {
 
 dom.btn.addNode2.addEventListener("click", _ => {
 	soccer.send("society/addNode", {}, 1);
-	soccer.send("society/addNode", {}, 1);
 });
 
 
@@ -164,8 +167,8 @@ dom.btn.emitPartices.addEventListener("click", _ => {
 	g.layout.emitParticle(lnk1);
 	g.layout.emitParticle(lnk2);
 
-	console.log(lnk1);
-	console.log(lnk2);
+	// console.log(lnk1);
+	// console.log(lnk2);
 
 	lnk1.source.color = randomColor();
 	lnk1.target.color = randomColor();

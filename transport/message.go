@@ -12,7 +12,7 @@ func (m Msg) String() string {
 	return string(m.Msg)
 }
 
-func (m Msg) Set(str string) {
+func (m *Msg) Set(str string) {
 	m.Msg = json.RawMessage(str)
 }
 
