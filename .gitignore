@@ -1,5 +1,5 @@
 node_modules/
-dist/
+www/dist/
 .parcel-cache/
 *.code-workspace
 go.work

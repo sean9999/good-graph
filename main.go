@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,23 +11,19 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/sean9999/good-graph/api"
-	"github.com/sean9999/good-graph/db"
-	"github.com/sean9999/good-graph/ws"
+	"github.com/sean9999/good-graph/society"
 )
 
 func main() {
 
-	// WebSockets
-	mother := ws.NewMotherShip()
-
-	//	persistence
-	gdb := db.New("testdata", mother.Inbox, mother.Outbox)
-
 	//	graph
-	society, err := gdb.Load()
-	if err != nil {
-		panic(err)
-	}
+	bus := society.NewBus()
+	db := society.NewJsonStore("testdata")
+	g := society.NewGraph(db, bus, rand.Reader)
+	// society, err := g.Db.Load()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	// router
 	r := chi.NewRouter()
@@ -38,10 +35,10 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	//	REST api
-	r.Mount("/api", api.Routes(gdb, society, nil))
+	r.Mount("/api", api.Routes(g))
 
 	//	websockets
-	r.Mount("/ws", mother)
+	r.Mount("/ws", g.Bus)
 
 	// HTML
 	r.Mount("/", http.FileServer(http.Dir("./dist")))
@@ -60,7 +57,7 @@ func main() {
 		WriteTimeout: 7 * time.Second,
 		IdleTimeout:  43 * time.Second,
 	}
-	err = srv.ListenAndServe()
+	err := srv.ListenAndServe()
 	if err != nil {
 		log.Error().Msgf("%v", err)
 	}
