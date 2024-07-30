@@ -10,7 +10,7 @@ publish:
 install:
 	npm install
 
-run:
+run: build
 	go run .
 
 clean:

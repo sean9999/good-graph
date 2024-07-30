@@ -27,13 +27,12 @@ const marcoPoloMsg = {
 };
 
 
-const ws = soccer.ws;
+//const ws = soccer.ws;
 soccer.onMessage(message => {
-
 	if (! "msgType" in message) {
 		console.warn("malformed message", message);
 	} else {
-		switch (message.msgType) {
+		switch (message.subject) {
 			case "marcoPolo":
 				if (message.msg == "marco") {
 					marcoPoloMsg.msg = "polo";
@@ -53,8 +52,10 @@ soccer.onMessage(message => {
 			case "society/addNode":
 				console.log("let's add a node!");
 				break;
+			case "mutation/peerAdded":
+				g.addNode(message.peer.nick);
 			default:
-				console.warn("not marco polo", message)
+				console.warn(message);
 		}
 	}
 });
@@ -146,7 +147,8 @@ dom.btn.addNode1.addEventListener("click", _ => {
 });
 
 dom.btn.addNode2.addEventListener("click", _ => {
-	soccer.send("society/addNode", {}, 1);
+	//console.log("hello")
+	soccer.send("please/addNode", {}, 1);
 });
 
 
@@ -166,9 +168,6 @@ dom.btn.emitPartices.addEventListener("click", _ => {
 	let lnk2 = g.randomLink(lnk1.source);
 	g.layout.emitParticle(lnk1);
 	g.layout.emitParticle(lnk2);
-
-	// console.log(lnk1);
-	// console.log(lnk2);
 
 	lnk1.source.color = randomColor();
 	lnk1.target.color = randomColor();

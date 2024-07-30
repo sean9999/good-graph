@@ -4,22 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/sean9999/good-graph/society"
+	"github.com/sean9999/good-graph/graph"
 )
 
-func GetVertices(soc society.Graph) http.HandlerFunc {
+func GetVertices(g graph.Graph) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		peers, err := soc.Peers()
-		if err != nil {
-			w.WriteHeader(404)
-			w.Write([]byte("not cool, dude"))
-		}
+		peers := g.Peers()
 		j, _ := json.Marshal(peers)
 		w.Write(j)
 	}
 }
 
-func GetVertexByNick(g society.Graph) http.HandlerFunc {
+func GetVertexByNick(g graph.Graph) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		nick := r.PathValue("nick")
 		p, err := g.Peer(nick)

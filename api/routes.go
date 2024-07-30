@@ -3,10 +3,10 @@ package api
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/sean9999/good-graph/society"
+	"github.com/sean9999/good-graph/graph"
 )
 
-func Routes(g society.Graph) *chi.Mux {
+func Routes(g graph.Graph) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middlewareJson)

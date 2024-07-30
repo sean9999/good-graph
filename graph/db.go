@@ -1,12 +1,18 @@
-package society
+package graph
 
-import "github.com/sean9999/harebrain"
+import (
+	"errors"
+
+	"github.com/sean9999/harebrain"
+)
+
+var ErrNoRelationship = errors.New("no relationship")
 
 type Database interface {
 	Open() error
 	Close() error
-	Load() (Society, error)
-	Save(Society) error
+	Load() (Snapshot, error)
+	Save(Snapshot) error
 	Peers() (map[string]Peer, error)
 	AddPeer(Peer) error
 	RemovePeer(Peer) error
@@ -21,7 +27,7 @@ type jsonstore struct {
 	Brain *harebrain.Database
 }
 
-type Dump struct {
+type Snapshot struct {
 	Peers         []Peer
 	Relationships []Relationship
 }
@@ -63,7 +69,7 @@ func (store *jsonstore) GetRelationship(hash string) (Relationship, error) {
 		return NoRelationship, ErrNoRelationship
 	}
 	rel := new(Relationship)
-	err = rel.UnmarshalBinary(b)
+	err = rel.UnmarshalJSON(b)
 	if err != nil {
 		return NoRelationship, err
 	}
@@ -78,7 +84,7 @@ func (store *jsonstore) Peers() (map[string]Peer, error) {
 	m2 := map[string]Peer{}
 	for k, v := range m1 {
 		p := new(Peer)
-		err := p.UnmarshalBinary(v)
+		err := p.UnmarshalJSON(v)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +105,7 @@ func (store *jsonstore) Relationships() ([]Relationship, error) {
 	}
 	for _, v := range m1 {
 		rel := new(Relationship)
-		err := rel.UnmarshalBinary(v)
+		err := rel.UnmarshalJSON(v)
 		if err != nil {
 			return nil, err
 		}
@@ -112,41 +118,28 @@ func (store *jsonstore) AddPeer(p Peer) error {
 	return store.Brain.Table("peers").Insert(p)
 }
 
-func (store *jsonstore) Save(soc Society) error {
-	for _, p := range soc.Peers() {
-		err := store.AddPeer(p)
-		if err != nil {
-			return err
-		}
+func (store *jsonstore) Save(snap Snapshot) error {
+	for _, peer := range snap.Peers {
+		store.AddPeer(peer)
 	}
-	for _, r := range soc.Relationships() {
-		err := store.AddRelationship(r)
-		if err != nil {
-			return err
-		}
+	for _, rel := range snap.Relationships {
+		store.AddRelationship(rel)
 	}
 	return nil
 }
 
-func (store *jsonstore) Load() (Society, error) {
-
-	soc := &society{}
-
-	peers, err := store.Peers()
-	if err != nil {
-		return nil, err
+func (store *jsonstore) Load() (Snapshot, error) {
+	snap := Snapshot{
+		Peers:         []Peer{},
+		Relationships: []Relationship{},
 	}
-	soc.peers = peers
-
-	rels, err := store.Relationships()
-	if err != nil {
-		return nil, err
+	peers, _ := store.Peers()
+	for _, p := range peers {
+		snap.Peers = append(snap.Peers, p)
 	}
-	for _, peer := range peers {
-		soc.AddPeer(peer)
-	}
+	rels, _ := store.Relationships()
 	for _, rel := range rels {
-		soc.AddRelationship(rel.From, rel.To)
+		snap.Relationships = append(snap.Relationships, rel)
 	}
-	return soc, nil
+	return snap, nil
 }

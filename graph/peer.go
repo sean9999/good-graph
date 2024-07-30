@@ -1,6 +1,7 @@
-package society
+package graph
 
 import (
+	"encoding/json"
 	"io"
 	"math/big"
 	"slices"
@@ -17,6 +18,7 @@ type Hasher interface {
 }
 
 // a Peer is a Hasher made up of public key material.
+// It represents a node in the graph.
 type Peer [64]byte
 
 var NoPeer Peer
@@ -35,13 +37,33 @@ func (p Peer) Equal(h Hasher) bool {
 func (p Peer) MarshalJSON() ([]byte, error) {
 	return oracle.Peer(p).MarshalJSON()
 }
-func (p Peer) UnmarshalJSON(b []byte) error {
-	o := oracle.Peer(p)
-	err := o.UnmarshalJSON(b)
+
+func (p Peer) ToHex() []byte {
+	hex, _ := oracle.Peer(p).MarshalHex()
+	return hex
+}
+
+func (p Peer) String() string {
+	return string(p.ToHex())
+}
+
+func (p *Peer) UnmarshalJSON(b []byte) error {
+
+	type js struct {
+		Address  string `json:"address"`
+		Nickname string `json:"nick"`
+		Pubkey   string `json:"pubkey"`
+	}
+
+	pj := new(js)
+
+	json.Unmarshal(b, pj)
+
+	ph, err := oracle.PeerFromHex([]byte(pj.Pubkey))
 	if err != nil {
 		return err
 	}
-	copy(p[:], o[:])
+	copy(p[:], ph[:])
 	return nil
 }
 func (p Peer) UnmarshalBinary(b []byte) error {

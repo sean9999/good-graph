@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/sean9999/good-graph/api"
-	"github.com/sean9999/good-graph/society"
+	society "github.com/sean9999/good-graph/graph"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	//	graph
 	bus := society.NewBus()
 	db := society.NewJsonStore("testdata")
-	g := society.NewGraph(db, bus, rand.Reader)
+	g, _ := society.NewGraph(db, bus, rand.Reader)
 	// society, err := g.Db.Load()
 	// if err != nil {
 	// 	panic(err)
@@ -38,10 +38,10 @@ func main() {
 	r.Mount("/api", api.Routes(g))
 
 	//	websockets
-	r.Mount("/ws", g.Bus)
+	r.Mount("/ws", g.Broker)
 
 	// HTML
-	r.Mount("/", http.FileServer(http.Dir("./dist")))
+	r.Mount("/", http.FileServer(http.Dir("./www/dist")))
 
 	// Start the server
 	port := os.Getenv("PORT")

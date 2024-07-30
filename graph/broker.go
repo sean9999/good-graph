@@ -1,15 +1,17 @@
-package society
+package graph
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
+	"sync/atomic"
 
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog"
 )
 
-// a OutsideWorld handles messages and connections
-type OutsideWorld interface {
+// a Broker handles [Message]s between two or more parties
+type Broker interface {
 	http.Handler
 	Listen() chan Message
 	Outbox() chan Message
@@ -17,8 +19,18 @@ type OutsideWorld interface {
 	Connections() map[*websocket.Conn]bool
 }
 
-// *bus implements OutsideWorld
-var _ OutsideWorld = (*bus)(nil)
+var GlobalID atomic.Int64
+
+type Message struct {
+	MessageID    int64         `json:"mid"`
+	ThreadID     int64         `json:"tid"`
+	Subject      string        `json:"subject"`
+	Peer         *Peer         `json:"peer"`
+	Relationship *Relationship `json:"relationship"`
+}
+
+// *bus implements Broker
+var _ Broker = (*bus)(nil)
 
 type bus struct {
 	connections map[*websocket.Conn]bool
@@ -67,14 +79,31 @@ func (m *bus) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}()
+
+	//	send anything comming in on the websocket to inbox
+	for {
+		_, p, err := c.ReadMessage()
+		if err != nil {
+			m.logger.Println(err)
+			return
+		} else {
+			msg := new(Message)
+			err := json.Unmarshal(p, msg)
+			if err != nil {
+				m.logger.Println(msg)
+			}
+			m.inbox <- *msg
+		}
+	}
+
 }
 
 func NewBus() *bus {
 	b := bus{
 		connections: map[*websocket.Conn]bool{},
 		logger:      zerolog.New(os.Stdout).Level(zerolog.DebugLevel),
-		inbox:       make(chan Message, 1024),
-		outbox:      make(chan Message, 2024),
+		inbox:       make(chan Message, 1),
+		outbox:      make(chan Message, 1),
 	}
 	return &b
 }

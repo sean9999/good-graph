@@ -1,4 +1,4 @@
-package society
+package graph
 
 // func TestDatabase_AddPeer(t *testing.T) {
 // 	ch1 := make(chan Message, 10)

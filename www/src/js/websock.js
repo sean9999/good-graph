@@ -24,15 +24,20 @@ class Soccer {
         this.ws.addEventListener("error", console.error.bind(this.ws));
         return this.ws.readyState;
     }
-    send(msgType="message", msg="", n=0) {
+    send(subject="message") {
         if (this.ws.CLOSED === this.ws.readyState) {
             console.error("can't send on a closed connection");
             //this.retry(msgType, msg, n);
             this.reconnect();
         } else {
             const m = {
-                msgType, msg, n
+                "subject": subject,
+                "peer": null,
+                "relationship": null, 
+                "mid": 0,
+                "tid": 0
             };
+            console.log(m);
             this.ws.send( JSON.stringify( m ) );
         }
     }
