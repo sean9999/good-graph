@@ -68,7 +68,7 @@ func NewGraph(db Database, broker Broker, randy io.Reader) (Graph, error) {
 			case "please/removeRelationship":
 				graph.RemoveRelationship(*ev.Relationship)
 			default:
-				fmt.Printf("unknown message title: inbox: %v\n", ev)
+				fmt.Printf("unknown subject %q: %v\n", ev.Subject, ev)
 			}
 		}
 	}()

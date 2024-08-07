@@ -16,11 +16,11 @@ type Broker interface {
 	Listen() chan Message
 	Outbox() chan Message
 	Logger() zerolog.Logger
-	Connections() map[*websocket.Conn]bool
 }
 
 var GlobalID atomic.Int64
 
+// a Message is a uniquely identifiable peice of information with an intended purpose
 type Message struct {
 	MessageID    int64         `json:"mid"`
 	ThreadID     int64         `json:"tid"`
@@ -33,10 +33,9 @@ type Message struct {
 var _ Broker = (*bus)(nil)
 
 type bus struct {
-	connections map[*websocket.Conn]bool
-	logger      zerolog.Logger
-	inbox       chan Message
-	outbox      chan Message
+	logger zerolog.Logger
+	inbox  chan Message
+	outbox chan Message
 }
 
 func (b *bus) Listen() chan Message {
@@ -47,9 +46,6 @@ func (b *bus) Outbox() chan Message {
 }
 func (b *bus) Logger() zerolog.Logger {
 	return b.logger
-}
-func (b *bus) Connections() map[*websocket.Conn]bool {
-	return b.connections
 }
 
 var upgrader = websocket.Upgrader{
@@ -66,8 +62,8 @@ func (m *bus) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		m.logger.Info().Msg("websockets going down")
-		c.Close()
 		r.Body.Close()
+		c.Close()
 	}()
 
 	//	send anything in outbox to websocket channel
@@ -90,7 +86,7 @@ func (m *bus) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			msg := new(Message)
 			err := json.Unmarshal(p, msg)
 			if err != nil {
-				m.logger.Println(msg)
+				m.logger.Println("can't marshal to a message ", msg)
 			}
 			m.inbox <- *msg
 		}
@@ -100,10 +96,9 @@ func (m *bus) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func NewBus() *bus {
 	b := bus{
-		connections: map[*websocket.Conn]bool{},
-		logger:      zerolog.New(os.Stdout).Level(zerolog.DebugLevel),
-		inbox:       make(chan Message, 1),
-		outbox:      make(chan Message, 1),
+		logger: zerolog.New(os.Stdout).Level(zerolog.DebugLevel),
+		inbox:  make(chan Message, 1),
+		outbox: make(chan Message, 1),
 	}
 	return &b
 }
