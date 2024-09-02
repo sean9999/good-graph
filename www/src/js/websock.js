@@ -24,7 +24,7 @@ class Soccer {
         this.ws.addEventListener("error", console.error.bind(this.ws));
         return this.ws.readyState;
     }
-    send(subject="message") {
+    send(subject="message", payload={}) {
         if (this.ws.CLOSED === this.ws.readyState) {
             console.error("can't send on a closed connection");
             //this.retry(msgType, msg, n);
@@ -35,7 +35,8 @@ class Soccer {
                 "peer": null,
                 "relationship": null, 
                 "mid": 0,
-                "tid": 0
+                "tid": 0,
+                "payload": payload
             };
             console.log(m);
             this.ws.send( JSON.stringify( m ) );

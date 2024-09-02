@@ -8,7 +8,7 @@ import soccer from "./websock";
 const nodes = [];
 const links = [];
 
-const g = new Graph(dom.nodeGraph, nodes, links);
+const g = new Graph(dom.nodeGraph, nodes, links, soccer);
 window.g = g;
 
 const getNodeIdFromLink = (thing) => {
@@ -147,7 +147,6 @@ dom.btn.addNode1.addEventListener("click", _ => {
 });
 
 dom.btn.addNode2.addEventListener("click", _ => {
-	//console.log("hello")
 	soccer.send("please/addNode", {}, 1);
 });
 
@@ -169,15 +168,19 @@ dom.btn.emitPartices.addEventListener("click", _ => {
 	g.layout.emitParticle(lnk1);
 	g.layout.emitParticle(lnk2);
 
-	lnk1.source.color = randomColor();
+	//lnk1.source.color = randomColor();
 	lnk1.target.color = randomColor();
 
-	lnk2.source.color = randomColor();
+	//lnk2.source.color = randomColor();
 	lnk2.target.color = randomColor();
 
-	window.lnk1 = lnk1;
-	window.lnk2 = lnk2;
+	//window.lnk1 = lnk1;
+	//window.lnk2 = lnk2;
 
+});
+
+dom.btn.colourNode.addEventListener("click", ev => {
+	console.log('colour node', ev.detail);
 });
 
 btnEgalitarian.addEventListener('click', _ => {

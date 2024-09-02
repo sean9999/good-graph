@@ -22,7 +22,7 @@ type Database interface {
 	GetRelationship(string) (Relationship, error)
 }
 
-// a [Snapshot] is a snapshot of the entire [Database]
+// a Snapshot is a snapshot of the entire [Database]
 type Snapshot struct {
 	Peers         []Peer
 	Relationships []Relationship

@@ -19,7 +19,8 @@ class Graph{
 	links;
 	globalId;
 	eventPipe;
-	constructor(domNode, nodes, links) {
+	Sock;
+	constructor(domNode, nodes, links, sock) {
 		//	data
 		this.globalId = 0;
 		this.nodes = nodes;
@@ -41,6 +42,7 @@ class Graph{
 		//layout.d3AlphaDecay(0.0400);
 		//layout.d3VelocityDecay(0.3);
 
+		this.Sock = sock;
 
 		layout.nodeCanvasObject((node, ctx, globalScale) => {
 			const label = node.label;
@@ -80,12 +82,13 @@ class Graph{
 
 		layout.linkDirectionalParticleWidth(7);
 		layout.d3ReheatSimulation();
-		layout.onNodeClick(ev => {
-			console.log("node click", ev);
-		});
         layout.linkDirectionalArrowLength(3);
         layout.linkDirectionalArrowRelPos(1);
 		
+		layout.onNodeClick(ev => {
+			this.Sock.send("please/colourNode", {"nickname": ev.nickname});
+		});
+
 		layout.onRenderFramePost(_ => {
 			console.log(this.eventPipe.length);
 			if (this.eventPipe.length) {

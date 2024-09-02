@@ -1,4 +1,6 @@
 const nodeGraph = document.getElementById('graph');
+
+//  buttons
 const addNode1 = document.getElementById('btnAddNode1');
 const addNode2 = document.getElementById('btnAddNode2');
 const lonely = document.getElementById('btnLonely');
@@ -9,6 +11,7 @@ const hier = document.getElementById('btnHier');
 const marco = document.getElementById('btnMarco');
 const killYourself = document.getElementById('btnKillYourself');
 const reconnect = document.getElementById('btnReconnect');
+const colourNode = document.getElementById('btnColourNode');
 
 const btn = {
     addNode1,
@@ -20,7 +23,8 @@ const btn = {
     hier,
     marco,
     killYourself,
-    reconnect
+    reconnect,
+    colourNode
 };
 
 export { btn, nodeGraph };

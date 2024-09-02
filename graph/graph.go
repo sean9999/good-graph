@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"time"
 
 	"github.com/hmdsefi/gograph"
@@ -67,6 +68,9 @@ func NewGraph(db Database, broker Broker, randy io.Reader) (Graph, error) {
 				graph.RemovePeer(*ev.Peer)
 			case "please/removeRelationship":
 				graph.RemoveRelationship(*ev.Relationship)
+			case "please/colourNode":
+				fmt.Println(ev)
+				graph.changeColour(ev.Peer.GetProp("nickname").(string))
 			default:
 				fmt.Printf("unknown subject %q: %v\n", ev.Subject, ev)
 			}
@@ -102,6 +106,29 @@ func (g Graph) AddPeer(p Peer) error {
 
 	go g.advertise(msg)
 	return nil
+}
+
+func randomColour() string {
+	x := rand.IntN(16777215)
+	return fmt.Sprintf("%06X", x)
+}
+
+func (g Graph) changeColour(nick string) {
+	var msg = Message{
+		Payload: map[string]any{},
+	}
+	p, err := g.Peer(nick)
+	if err != nil {
+		msg.Subject = "error changing colour"
+		go g.advertise(msg)
+		return
+	}
+	colour := randomColour()
+	p.SetProp("colour", colour)
+	msg.Subject = "please/changeColour"
+	msg.Peer = &p
+	msg.Payload["colour"] = colour
+	go g.advertise(msg)
 }
 
 func (g Graph) Peer(hash string) (Peer, error) {

@@ -22,11 +22,12 @@ var GlobalID atomic.Int64
 
 // a Message is a uniquely identifiable peice of information with an intended purpose
 type Message struct {
-	MessageID    int64         `json:"mid"`
-	ThreadID     int64         `json:"tid"`
-	Subject      string        `json:"subject"`
-	Peer         *Peer         `json:"peer"`
-	Relationship *Relationship `json:"relationship"`
+	MessageID    int64          `json:"mid"` // MessageID must be unique
+	ThreadID     int64          `json:"tid"` // ThreadID must refer to an existing MessageID
+	Subject      string         `json:"subject"`
+	Peer         *Peer          `json:"peer"`
+	Relationship *Relationship  `json:"relationship"`
+	Payload      map[string]any `json:"payload"`
 }
 
 // *bus implements Broker

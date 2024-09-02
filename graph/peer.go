@@ -10,6 +10,10 @@ import (
 	"github.com/sean9999/polity"
 )
 
+type PropMap map[string]any
+
+var PeerProps = map[string]map[string]any{}
+
 // a Hasher can hash itself to a unique string
 // and can distinguish itself from other Hashers
 type Hasher interface {
@@ -26,6 +30,14 @@ var NoPeer Peer
 // a zero-value Peer is said to not exist
 func (p Peer) Exists() bool {
 	return slices.Equal(p[:], NoPeer[:])
+}
+
+func (p Peer) GetProp(key string) any {
+	return PeerProps[p.Hash()][key]
+}
+
+func (p Peer) SetProp(key string, val any) {
+	PeerProps[p.Hash()][key] = val
 }
 
 func (p Peer) Hash() string {
@@ -84,12 +96,15 @@ func (p Peer) ToInt() int {
 }
 
 func NewPeer(randy io.Reader) Peer {
-	p, _ := polity.NewPeer(randy)
-	return Peer(p)
+	p1, _ := polity.NewPeer(randy)
+	p := Peer(p1)
+	PeerProps[p.Hash()] = map[string]any{}
+	return p
 }
 
 func PeerFromBytes(b []byte) Peer {
 	var p Peer
 	copy(p[:], b)
+	PeerProps[p.Hash()] = map[string]any{}
 	return p
 }

@@ -71,8 +71,6 @@ func NewMockDatabase() *MockDatabase {
 	return &MockDatabase{}
 }
 
-// func NewGraph(db Database, broker Broker, randy io.Reader) (Graph, error) {
-
 func TestNewGraph(t *testing.T) {
 
 	graph, err := NewGraph(NewMockDatabase(), NewMockBroker(), rand.Reader)
